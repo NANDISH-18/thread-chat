@@ -13,18 +13,20 @@ import {
     Text,
     useColorModeValue,
     Link,
-    useToast,
+    // useToast,
   } from '@chakra-ui/react';
   import { useState } from 'react';
   import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { useSetRecoilState } from 'recoil';
 import authScreenAtom from '../atoms/authAtom';
 import userAtom from '../atoms/userAtom';
+import useShowToast from '../Hooks/useShowToast';
   
   const  SignupCard = () => {
     const [showPassword, setShowPassword] = useState(false);
     const setAuthScreenState = useSetRecoilState(authScreenAtom);
     const setUser = useSetRecoilState(userAtom);
+    const showToast = useShowToast();
     const [inputs, setInputs] = useState({
         name: "",
         username: "",
@@ -32,7 +34,7 @@ import userAtom from '../atoms/userAtom';
         password: ""
     })
 
-    const toast = useToast();
+    // const toast = useToast();
     
 
     const handleSignUp = async () => {
@@ -47,26 +49,16 @@ import userAtom from '../atoms/userAtom';
             const data = await res.json();
     
             if(data.error){
-                toast({
-                    title: 'Error',
-                    description: data.error,
-                    status: 'error',
-                    duration: 3000,
-                    isClosable: true
-                })
+              showToast("Error", data.error, "error");
                 return;
             }
             localStorage.setItem('user-threads',JSON.stringify(data));
             setUser(data);
-            toast({
-                title: 'Success',
-                description: 'Account created successfully!',
-                status:'success',
-                duration: 3000,
-                isClosable: true
-            })
+            
+            showToast("Success", "Account created successfully!", "success");
         } catch (error) {
             console.log(error)
+            showToast("Error", error, "error");
         }
     }
   

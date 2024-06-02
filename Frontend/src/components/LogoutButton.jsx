@@ -1,16 +1,16 @@
-import { Button, useToast } from "@chakra-ui/react"
+import { Button } from "@chakra-ui/react"
 import { useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
+import useShowToast from "../Hooks/useShowToast";
 
 
 const LogoutButton = () => {
 
-    const toast = useToast();
-    const setUser = useSetRecoilState(userAtom)
+    const setUser = useSetRecoilState(userAtom);
+    const showToast = useShowToast()
 
     const handleLogout = async () => {
         try {
-            localStorage.removeItem("user-threads");
             // fetch
             const res = await fetch('/api/users/logout' , {
                 method: 'POST',
@@ -21,27 +21,16 @@ const LogoutButton = () => {
             })
             const data = await res.json();
             if(data.error){
-                toast({
-                    title: 'Error',
-                    description: data.error,
-                    status: 'error',
-                    duration: 3000,
-                    isClosable: true
-                })
+                showToast("Error", data.error, "error");
+                return;
             }
+            localStorage.removeItem("user-threads");
             setUser(null);
-            toast({
-                title: 'Success',
-                description: 'Logout successfully!',
-                status:'success',
-                duration: 3000,
-                isClosable: true
-            })
-
-
+            showToast("Success", "Logout successfully!", "success");
 
         } catch (error) {
-            console.log(error)
+            console.log(error);
+            showToast("Error", error, "error");
         }
     }
 
