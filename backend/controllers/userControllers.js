@@ -1,6 +1,8 @@
 import users from "../models/userModel.js";
 import bcrypt from 'bcryptjs'
 import generatedTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
+import {v2 as cloudinary} from 'cloudinary'
+import jwt from 'jsonwebtoken'
 const signUpUser = async (req,res) => {
     try {
         const {name, email, username, password} = req.body;
@@ -31,6 +33,8 @@ const signUpUser = async (req,res) => {
                 name: newUser.name,
                 email: newUser.email,
                 username: newUser.username,
+                bio: newUser.bio,
+                profilePic: newUser.profilePic,
             })
         }else{
             res.status(400).json({error: "Invalid user data"})
@@ -60,6 +64,8 @@ const loginUser = async (req,res)=>{
             name: user.name,
             email: user.email,
             username: user.username,
+            bio: user.bio,
+            profilePic: user.profilePic,
         })
 
         
@@ -115,7 +121,8 @@ const followUnFollowUser = async (req,res) => {
 
 const updateUser = async (req,res) => {
 
-    const {name, email, password, username, profilePic, bio}= req.body;
+    const {name, email, password, username, bio}= req.body;
+    let {profilePic} = req.body;
     const userId = req.user._id;
     try {
         // Fetch the user document by ID
@@ -132,13 +139,32 @@ const updateUser = async (req,res) => {
             user.password = hashedPassword;
 
         }
+        if(profilePic){
+            if(user.profilePic){
+                await cloudinary.uploader.destroy(user.profilePic.split('/').pop().split('.')[0]);
+            }
+            const uploadResoponse = await cloudinary.uploader.upload(profilePic);
+            profilePic = uploadResoponse.secure_url
+        }
+        
         user.name = name || user.name;
         user.email = email || user.email;
         user.username = username || user.username;
         user.profilePic = profilePic || user.profilePic;
         user.bio = bio || user.bio;
+
+        // // password should be null in response
+        // user.password = null;
         
         await user.save();
+
+        // Generate a new token
+        const token = jwt.sign({ _id: user._id }, process.env.jwtToken, { expiresIn: '1h' });
+
+        // Remove password from the response
+        user = user.toObject();
+        delete user.password;
+
         res.status(200).json({message: "Profile updated successfully", user});
     } catch (err) {
         res.status(500).json({message: err.message})

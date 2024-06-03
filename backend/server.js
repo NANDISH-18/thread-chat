@@ -4,6 +4,7 @@ import connectDb from './db/connectDb.js';
 import cookieParser from 'cookie-parser';
 import userRoutes from './routes/userRoutes.js';
 import postRoutes from './routes/postRoutes.js';
+import {v2 as cloudinary} from 'cloudinary'
 
 dotenv.config()
 connectDb();
@@ -11,8 +12,15 @@ const app = express();
 
 const PORT = process.env.port || 5000;
 
-app.use(express.json()); //To parse JSON data in the req.body
-app.use(express.urlencoded({extended: true})); //To parse the form data in the req.body
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+})
+
+
+app.use(express.json({limit: '10mb'})); //To parse JSON data in the req.body
+app.use(express.urlencoded({limit: '10mb',extended: true})); //To parse the form data in the req.body
 app.use(cookieParser());
 
 // Router
