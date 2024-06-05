@@ -30,10 +30,12 @@ const LoginCard = () => {
     username: "",
     password: ""
   })
+  const [loading, setLoading] = useState(false)
 
   // const toast = useToast();
 
   const handleLogin = async () => {
+    setLoading(true)
     try {
       const res = await fetch("/api/users/login", {
         method: "POST",
@@ -55,6 +57,8 @@ const LoginCard = () => {
     } catch (error) {
       console.log(error);
       showToast("Error", error, "error");
+    } finally{
+      setLoading(false)
     }
     
   }
@@ -109,7 +113,9 @@ const LoginCard = () => {
                 color={'white'}
                 _hover={{
                   bg: useColorModeValue("gray.700", "gray.800"),
-                }} onClick={handleLogin}>
+                }} onClick={handleLogin}
+                isLoading={loading}
+                >
                 Login
               </Button>
             </Stack>

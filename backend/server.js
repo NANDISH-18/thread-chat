@@ -19,8 +19,8 @@ cloudinary.config({
 })
 
 
-app.use(express.json({limit: '10mb'})); //To parse JSON data in the req.body
-app.use(express.urlencoded({limit: '10mb',extended: true})); //To parse the form data in the req.body
+app.use(express.json({limit: '50mb'})); //To parse JSON data in the req.body
+app.use(express.urlencoded({limit: '50mb',extended: true})); //To parse the form data in the req.body
 app.use(cookieParser());
 
 // Router
