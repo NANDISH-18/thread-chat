@@ -4,12 +4,17 @@ import { Link, useNavigate } from "react-router-dom"
 import Actions from "./Actions"
 import { useEffect, useState } from "react"
 import useShowToast from "../Hooks/useShowToast"
-import {formatDistanceToNow} from 'date-fns'
+import {formatDistanceToNow} from 'date-fns';
+import {DeleteIcon} from '@chakra-ui/icons'
+import { useRecoilValue } from "recoil"
+import userAtom from "../atoms/userAtom"
 
 const Post = ({post, postedBy}) => {
     const showToast = useShowToast()
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
+
+    const currentUser = useRecoilValue(userAtom)
 
     useEffect(() => {
         const getUser = async () => {
@@ -31,6 +36,29 @@ const Post = ({post, postedBy}) => {
         getUser();
         
     },[postedBy,showToast])
+
+    const handleDeletePost = async (e) => {
+        try {
+            e.preventDefault();
+
+            if(!window.confirm('Are you sure you want to delete the post')) return; 
+
+            const res = await fetch(`/api/posts/${post._id}`,{
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if(data.error){
+                showToast("Error", data.error, 'error');
+                return
+            }
+
+            showToast('Success', "Post deleted!", "success")
+
+
+        } catch (error) {
+            showToast("Error", error, 'error');
+        }
+    }
 
   return (
     <Link to={`/${user?.username}/post/${post._id}`}>
@@ -91,10 +119,18 @@ const Post = ({post, postedBy}) => {
                     </Flex>
                     <Flex gap={4} alignItems={'center'}>
                         <Text fontSize={'xs'} width={36} textAlign={'right'} color={'gray.light'}>{formatDistanceToNow(new Date(post.createdAt))} ago</Text>
+                    
+                        {currentUser?._id === user?._id && <DeleteIcon size={20} onClick={handleDeletePost}/>}
                     </Flex>
 
+                    
+
                 </Flex>
-                <Text fontSize={'sm'}>{post.text}</Text>
+                <Flex alignItems={'flex-start'}>
+                    <Box>
+                        <Text fontSize={'sm'}>{post.text}</Text>
+                    </Box>
+                </Flex>
                 {post.img && (
                     <Box borderRadius={6} border={'1px solid'} borderColor={'gray.light'} overflow={'hidden'}>
                         <Image src={post.img}  w={'full'}/>

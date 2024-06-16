@@ -64,23 +64,47 @@ const createPost = async (req,res) => {
 const deletPost = async (req,res) => {
     try {
         const post = await Post.findById(req.params.id);
+
         // Check if post is present or not
-        if(!post){
-            return res.status(404).json({error: "Post not found"});
+        if (!post) {
+            return res.status(404).json({ error: "Post not found" });
         }
+
         // Check if user is authorized to delete post
-        if(post.postedBy.toString() !== req.user._id.toString() ){
-            return res.status(401).json({error: "Unauthorized to delete post"});
+        if (post.postedBy.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ error: "Unauthorized to delete post" });
         }
 
-        await Post.findByIdAndDelete(req.params.id);
-        res.status(200).json({message: "Post deleted successfully"});
+        // If the post has an image, delete it from Cloudinary
+        if (post.img) {
+            // console.log("Post image URL:", post.img);
 
-        
+            const urlParts = post.img.split('/');
+            const fileName = urlParts.pop();
+            const imgID = fileName ? fileName.split('.')[0] : null;
+
+            if (imgID) {
+                console.log("Extracted image ID:", imgID);
+                await cloudinary.uploader.destroy(imgID, (error, result) => {
+                    if (error) {
+                        // console.log("Cloudinary deletion error:", error);
+                        return res.status(500).json({ message: "Failed to delete image from Cloudinary" });
+                    }
+                    console.log("Cloudinary deletion result:", result);
+                });
+            } else {
+                // console.log("Failed to extract image ID from URL");
+                return res.status(500).json({ message: "Failed to extract image ID from URL" });
+            }
+        }
+
+        // Delete the post from the database
+        await Post.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Post deleted successfully" });
 
     } catch (err) {
-        res.status(500).json({message: err.message})
-        console.log('Error in deleting the post', err.message);
+        console.error('Error in deleting the post:', err.message);
+        res.status(500).json({ message: err.message });
     }
 }
 
