@@ -1,15 +1,16 @@
 import { Box, Button, Flex, FormControl, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text, useDisclosure } from "@chakra-ui/react"
 import { useState } from "react";
-import { useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import userAtom from '../atoms/userAtom'
 import useShowToast from "../Hooks/useShowToast";
+import postAtom from "../atoms/postAtom";
 
 
 
-export const Actions = ({ post: post_ }) => {
+export const Actions = ({ post }) => {
 	const user = useRecoilValue(userAtom);
-	const [liked, setLiked] = useState(post_.likes.includes(user?._id));
-	const [post, setPost] = useState(post_);
+	const [liked, setLiked] = useState(post.likes.includes(user?._id));
+	const [posts,setPosts] = useRecoilState(postAtom);
 	const [isLiking, setIsLiking] = useState(false);
 	const [reply, setReply] = useState("");
 	const [isReplying, setIsReplying] = useState(false);
@@ -43,10 +44,24 @@ export const Actions = ({ post: post_ }) => {
 			// console.log(data);
 			if (!liked) {
 				// Add the id of the current user to post.likes array
-				setPost({ ...post, likes: [...post.likes, user._id] });
+				// setPost({ ...post, likes: [...post.likes, user._id] });
+				const updatedPost = posts.map((p) => {
+					if(p._id === post._id){
+						return{...p,likes: [...p.likes, user._id]}
+					}
+					return p;
+				})
+				setPosts(updatedPost);
 			} else {
 				// Remove the id of the curent user from post.likes array
-				setPost({ ...post, likes: post.likes.filter(id => id !== user._id) });
+				// setPost({ ...post, likes: post.likes.filter(id => id !== user._id) });
+				const updatedPost = posts.map((p) => {
+					if(p._id === post._id){
+						return{...p, likes: p.likes.filter((id) => id !== user._id)}
+					}
+					return p;
+				})
+				setPosts(updatedPost);
 			}
 
 			setLiked(!liked)
@@ -82,7 +97,13 @@ export const Actions = ({ post: post_ }) => {
 				showToast("Error", data.error, "Error");
 				return;
 			}
-			setPost({...post, replies: [...post.replies, data.reply]});
+			const updatedPost = posts.map((p) => {
+				if(p._id === post._id){
+					return{...p, replies: [...p.replies, data ]}
+				}
+				return p;
+			})
+			setPosts(updatedPost);
 			showToast("success", `Reply posted successful to the post`, 'success');
 			console.log(data);
 			onClose();

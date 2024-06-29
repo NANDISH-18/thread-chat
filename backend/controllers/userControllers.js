@@ -1,4 +1,5 @@
 import users from "../models/userModel.js";
+import post from '../models/postModel.js'
 import bcrypt from 'bcryptjs'
 import generatedTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 import {v2 as cloudinary} from 'cloudinary'
@@ -125,6 +126,7 @@ const updateUser = async (req,res) => {
     const {name, email, password, username, bio}= req.body;
     let {profilePic} = req.body;
     const userId = req.user._id;
+    // console.log('Updating user profile for userId:', userId);
     try {
         // Fetch the user document by ID
         let user = await users.findById(userId);
@@ -154,13 +156,26 @@ const updateUser = async (req,res) => {
         user.profilePic = profilePic || user.profilePic;
         user.bio = bio || user.bio;
 
+        // Find all posts that this user is replied and update username and userProfilePic
+        await post.updateMany(
+            {"replies.userId": userId},
+            {
+                $set:{
+                    "replies.$[reply].username": user.username,
+                    "replies.$[reply].userProfilePic": user.profilePic
+                }
+            },
+            {arrayFilters: [{ "reply.userId": userId }]}
+        )
+
         // // password should be null in response
         // user.password = null;
         
-        await user.save();
 
         // Generate a new token
         const token = jwt.sign({ _id: user._id }, process.env.jwtToken, { expiresIn: '1h' });
+
+        await user.save();
 
         // Remove password from the response
         user = user.toObject();

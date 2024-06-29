@@ -3,15 +3,19 @@ import { Button, CloseButton, Flex, FormControl, Image, Input, Modal, ModalBody,
 import { useRef, useState } from "react"
 import usePreviewImage from "../Hooks/usePreviewImage"
 import { BsFillImageFill } from "react-icons/bs"
-import { useRecoilValue } from "recoil"
+import { useRecoilState, useRecoilValue } from "recoil"
 import userAtom from "../atoms/userAtom"
 import useShowToast from "../Hooks/useShowToast"
+import postAtom from "../atoms/postAtom";
+import { useParams } from "react-router-dom"
+
 
 const CreatePost = () => {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [postText, setPostText] = useState('');
     const imageRef = useRef(null);
     const showToast = useShowToast()
+    const {username} = useParams();
 
     const MAX_CHAR = 500
 
@@ -19,6 +23,7 @@ const CreatePost = () => {
     const [remainingChar, setRemainingChar] = useState(MAX_CHAR);
     const user= useRecoilValue(userAtom);
     const [loading, setLoading] = useState(false);
+    const [posts, setPosts] = useRecoilState(postAtom);
 
     const handleTextChange = (e) => {
         const inputText = e.target.value;
@@ -51,6 +56,10 @@ const CreatePost = () => {
             }
             console.log(data);
             showToast('Success', 'Post created successfully', 'success');
+            if(username === user.username){
+                setPosts([data, ...posts]);
+            }
+            
             onClose();
             setPostText('')
         } catch (error) {
@@ -65,13 +74,13 @@ const CreatePost = () => {
             <Button
                 position={'fixed'}
                 bottom={10}
-                right={10}
-                leftIcon={<AddIcon />}
+                right={5}
+                size={{base: "sm",sm: "md", md: ''}}
                 bg={useColorModeValue("gray.300", "gray.dark")}
                 onClick={onOpen}
             >
-
-                Post
+                <AddIcon />
+                
             </Button>
             <Modal isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay />

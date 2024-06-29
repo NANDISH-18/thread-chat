@@ -2,12 +2,14 @@ import { Box, Flex, Spinner } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 import useShowToast from "../Hooks/useShowToast"
 import Post from "../components/Post"
+import { useRecoilState } from "recoil"
+import postAtom from "../atoms/postAtom"
 
 
 
 const HomePage = () => {
   const showToast = useShowToast();
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useRecoilState(postAtom);
   const [loading, setLoading] = useState(true);
 
   useEffect(()=> {
@@ -20,7 +22,7 @@ const HomePage = () => {
           showToast('Error', data.error, 'error');
           return;
         }
-        console.log(data);
+        // console.log(data);
         // Ensure data is in the array
         if(Array.isArray(data)){
           setPosts(data);

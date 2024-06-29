@@ -1,26 +1,31 @@
 import { Avatar, Box, Button, Divider, Flex, Image, Spinner, Text } from "@chakra-ui/react"
-import { BsThreeDots } from "react-icons/bs"
+// import { BsThreeDots } from "react-icons/bs"
 import Actions from "../components/Actions"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import Comment from "../components/Comment"
 import useShowToast from "../Hooks/useShowToast"
 import useGetProfile from "../Hooks/useGetProfile"
 import { useNavigate, useParams } from "react-router-dom"
 import { formatDistanceToNow } from "date-fns"
-import { useRecoilValue } from "recoil"
+import { useRecoilState, useRecoilValue } from "recoil"
 import userAtom from "../atoms/userAtom"
 import { DeleteIcon } from "@chakra-ui/icons"
+import postAtom from "../atoms/postAtom"
+
 
 const PostPage = () => {
   const { user, loading } = useGetProfile();
   const showToast = useShowToast();
   const { pid } = useParams();
-  const [post, setPost] = useState(null);
+  const [posts, setPosts] = useRecoilState(postAtom);
   const currentUser = useRecoilValue(userAtom);
   const navigate = useNavigate();
 
+  const currentPost = posts[0];
+
   useEffect(() => {
     const getPosts = async () => {
+      setPosts([]);
       try {
         const res = await fetch(`/api/posts/${pid}`);
         const data = await res.json();
@@ -29,7 +34,7 @@ const PostPage = () => {
           return;
         }
         console.log(data);
-        setPost(data);
+        setPosts([data]);
       } catch (error) {
         showToast('Error', error, 'error');
         return
@@ -37,7 +42,7 @@ const PostPage = () => {
     }
 
     getPosts();
-  }, [showToast, pid]);
+  }, [showToast, pid, setPosts]);
 
   const handleDeletePost = async (e) => {
     try {
@@ -45,7 +50,7 @@ const PostPage = () => {
 
       if (!window.confirm('Are you sure you want to delete the post')) return;
 
-      const res = await fetch(`/api/posts/${post._id}`, {
+      const res = await fetch(`/api/posts/${currentPost._id}`, {
         method: 'DELETE'
       });
       const data = await res.json();
@@ -71,7 +76,7 @@ const PostPage = () => {
     )
   }
 
-  if (!post) return null;
+  if (!currentPost) return null;
 
   return (
     <>
@@ -86,7 +91,7 @@ const PostPage = () => {
         </Flex>
 
         <Flex gap={4} alignItems={'center'}>
-          <Text fontSize={'xs'} width={36} textAlign={'right'} color={'gray.light'}>{formatDistanceToNow(new Date(post.createdAt))} ago</Text>
+          <Text fontSize={'xs'} width={36} textAlign={'right'} color={'gray.light'}>{formatDistanceToNow(new Date(currentPost.createdAt))} ago</Text>
 
           {currentUser?._id === user?._id && <DeleteIcon cursor={'pointer'} size={20} onClick={handleDeletePost} />}
         </Flex>
@@ -97,16 +102,16 @@ const PostPage = () => {
       </Flex>
       <Flex alignItems={'flex-start'}>
       <Box>
-        <Text my={3}>{post.text}</Text>
+        <Text my={3}>{currentPost.text}</Text>
       </Box>
       </Flex>
-      {post.img && (
+      {currentPost.img && (
         <Box borderRadius={6} border={'1px solid'} borderColor={'gray.light'} overflow={'hidden'}>
-          <Image src={post.img} w={'full'} />
+          <Image src={currentPost.img} w={'full'} />
         </Box>
       )}
       <Flex gap={3} my={3}>
-        <Actions post={post} />
+        <Actions post={currentPost} />
       </Flex>
       <Divider my={4} />
       <Flex justifyContent={'space-between'}>
@@ -119,11 +124,11 @@ const PostPage = () => {
         </Button>
       </Flex>
       <Divider my={4} />
-      {post.replies.map(reply => (
+      {currentPost.replies.map(reply => (
         <Comment
           key={reply._id}
           reply={reply}
-          lastReply={reply._id === post.replies[post.replies.length - 1]._id}
+          lastReply={reply._id === currentPost.replies[currentPost.replies.length - 1]._id}
         />
 
       ))}

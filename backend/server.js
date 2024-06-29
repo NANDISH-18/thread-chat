@@ -4,6 +4,7 @@ import connectDb from './db/connectDb.js';
 import cookieParser from 'cookie-parser';
 import userRoutes from './routes/userRoutes.js';
 import postRoutes from './routes/postRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 import {v2 as cloudinary} from 'cloudinary'
 
 dotenv.config()
@@ -26,6 +27,8 @@ app.use(cookieParser());
 // Router
 app.use('/api/users', userRoutes)
 app.use('/api/posts', postRoutes);
+app.use('/api/messages', messageRoutes);
+
 
 
 
