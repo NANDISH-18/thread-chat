@@ -8,6 +8,7 @@ import useShowToast from '../Hooks/useShowToast';
 import { useRecoilState, useRecoilValue } from "recoil";
 import { conversationAtom, selectedConversationAtom } from "../atoms/messagesAtom";
 import userAtom from "../atoms/userAtom";
+import { useSocketNew } from "../appContext/AppSocketContextNew";
 
 const ChatPage = () => {
   
@@ -18,6 +19,11 @@ const ChatPage = () => {
   const [searchingUser, setSearchingUser] = useState(false);
   const currentUser = useRecoilValue(userAtom);
   const showToast = useShowToast();
+  const {socket, onlineUser} = useSocketNew()
+
+  console.log("OnlineUser n chat page: ", onlineUser)
+
+
   useEffect(()=> {
     const getConversation = async () => {
       try {
@@ -158,7 +164,11 @@ const ChatPage = () => {
           {!loadingConversation && 
           
             conversations.map(conversation => (
-              <Conversation key={conversation._id} conversation={conversation} />
+              <Conversation key={conversation._id}
+              isOnline = {onlineUser.includes(conversation.participants[0]._id)} 
+              conversation={conversation} 
+              
+              />
             ))
           }
           

@@ -6,10 +6,11 @@ import userRoutes from './routes/userRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import {v2 as cloudinary} from 'cloudinary'
+import {app, server} from './socket/socket.js'
+import cors from 'cors';
 
 dotenv.config()
 connectDb();
-const app = express();
 
 const PORT = process.env.port || 5000;
 
@@ -18,6 +19,11 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 })
+
+app.use(cors({
+    origin: ['http://localhost:3000'],
+    methods: ['GET', 'POST']
+}))
 
 
 app.use(express.json({limit: '50mb'})); //To parse JSON data in the req.body
@@ -32,6 +38,6 @@ app.use('/api/messages', messageRoutes);
 
 
 
-app.listen(PORT, ()=> {
+server.listen(PORT, ()=> {
     console.log(`Server is up and running on ${PORT}`);
 })
