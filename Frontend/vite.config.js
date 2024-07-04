@@ -15,6 +15,9 @@ export default defineConfig({
       }
     }
   },
+  optimizeDeps: {
+    exclude: ['chunk-TOIZHZPN'] // Add the problematic dependency here
+  }
   
 
 })

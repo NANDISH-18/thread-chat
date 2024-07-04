@@ -3,14 +3,14 @@ import Message from "./Message"
 import MessageInput from "./MessageInput"
 import { useEffect, useRef, useState } from "react"
 import useShowToast from "../Hooks/useShowToast"
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import {  useRecoilValue, useSetRecoilState } from "recoil"
 import { conversationAtom, selectedConversationAtom } from "../atoms/messagesAtom"
 import userAtom from "../atoms/userAtom"
 import { useSocketNew } from "../appContext/AppSocketContextNew"
 
 const MessageContainer = () => {
     const showToast = useShowToast()
-    const [selectedConversation, setSelectedConversation] = useRecoilState(selectedConversationAtom);
+    const selectedConversation= useRecoilValue(selectedConversationAtom);
     const [loadingMessages , setLoadingMessages] = useState(true);
     const [messages, setMessages]= useState([]);
     const currentUser =  useRecoilValue(userAtom);
@@ -42,7 +42,36 @@ const MessageContainer = () => {
         })
 
         return () =>  socket.off("newMessage");
-    },[socket]);
+    },[selectedConversation._id, setConversations, socket]);
+
+    useEffect(() => {
+        const lastMessageFromOtherUser = messages.length && messages[messages.length-1].sender !== currentUser._id;
+
+        if(lastMessageFromOtherUser){
+            socket.emit('markMessageAsSeen' , {
+                conversationId: selectedConversation._id,
+                userId: selectedConversation.userId,
+            })
+        }
+        
+        socket.on('messagesSeen' , ({conversationId}) => {
+            if(selectedConversation._id === conversationId){
+                setMessages(prev => {
+                    const updatedMessage = prev.map(message => {
+                        if(!message.seen){
+                            return {
+                                ...message,
+                                seen: true
+                            }
+                        }
+                        return message
+                    })
+                    return updatedMessage;
+                })
+            }
+        })
+
+    }, [socket, messages, selectedConversation, currentUser]);
 
     useEffect(() => {
         messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,7 +98,7 @@ const MessageContainer = () => {
         }
         getMessage();
 
-    }, [showToast, selectedConversation.userId])
+    }, [showToast, selectedConversation.userId, selectedConversation.mock])
 
 
   return (
