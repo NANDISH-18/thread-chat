@@ -6,6 +6,7 @@ import userAtom from '../atoms/userAtom'
 import {Link as RouterLink} from 'react-router-dom'
 import { useState } from "react"
 import useShowToast from "../Hooks/useShowToast";
+import useFollowUnfollow from "../Hooks/useFollowUnfollow"
 
 
 
@@ -15,8 +16,8 @@ const UserHeader = ({user}) => {
     const toast = useToast();
     const showToast = useShowToast();
     const currentUser = useRecoilValue(userAtom);
-    const [following, setFollowing] = useState(user.followers.includes(currentUser?._id));
-    const [updating, setUpdating] = useState(false);
+    const {handleFollowunFollow, following, updating} = useFollowUnfollow(user)
+    
     // console.log(following);
 
     const copyUrl =() => {
@@ -26,41 +27,7 @@ const UserHeader = ({user}) => {
         })
     }
 
-    const handleFollowunFollow = async () => {
-        if(!currentUser){
-            showToast("Error", 'Please login to follow', 'error');
-            return;
-        }
-        if(updating) return;
-        setUpdating(true);
-        try {
-            const res = await fetch(`/api/users/follow/${user._id}`,{
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            })
-            const data = await res.json();
-            if(data.error){
-                showToast('Error', data.error, 'error');
-                return;
-            }
-            if(following){
-                showToast('Success', `Unfollowed ${user.name}`, 'success');
-                user.followers.pop(); //remove the followers
-            }else{
-                showToast('Success', `Followed ${user.name}`, 'success');
-                user.followers.push(currentUser?._id) //adding the followers
-            }
-            setFollowing(!following)
-            
-        } catch (error) {
-            showToast('Error', error, 'error');
-        } finally{
-            setUpdating(false);
-        }
-    }
-
+    
     return (
         <>
             <VStack gap={4} alignItems={'start'}>

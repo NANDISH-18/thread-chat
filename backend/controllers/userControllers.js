@@ -212,5 +212,41 @@ const getUserProfile = async (req,res) => {
     }
 }
 
+const getSuggestedUsers = async (req,res) => {
+    try {
+        // Exclude the current user from suggested user array and exclude user that current user is already following
+        const userId = req.user._id;
+        // Try to find user which follow
+        const userFollowedByYou = await users.findById(userId).select("following");
+        // trying to fetch 10 users randomly from database
+        const user = await users.aggregate([
+            {
+                $match: {
+                    _id: {
+                        $ne: userId
+                    }
+                }
+            },
+            {
+                $sample: {
+                    size: 10
+                }
+            }
+        ])
+        // filter the users which are already following
+        const filteredUser = user.filter(user => !userFollowedByYou.following.includes(user._id));
+        const suggestedUser = filteredUser.slice(0,4);
 
-export {signUpUser, loginUser, logOut,followUnFollowUser, updateUser, getUserProfile}
+        suggestedUser.forEach(user => user.password = null);
+
+        res.status(200).json(suggestedUser);
+
+
+    } catch (err) {
+        res.status(500).json({error: err.message})
+        console.log('Error in get the suggestedUser', err.message);
+    }
+}
+
+
+export {signUpUser, loginUser, logOut,followUnFollowUser, updateUser, getUserProfile, getSuggestedUsers}
