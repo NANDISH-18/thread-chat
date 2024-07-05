@@ -59,6 +59,11 @@ const loginUser = async (req,res)=>{
             return res.status(400).json({error: "Invalid credentials"});
         }
 
+        if(user.isFrozen){
+            user.isFrozen = false;
+            await user.save();
+        }
+
         generatedTokenAndSetCookie(user._id, res);
 
         res.status(200).json({
@@ -247,6 +252,21 @@ const getSuggestedUsers = async (req,res) => {
         console.log('Error in get the suggestedUser', err.message);
     }
 }
+const freezeAccount = async (req,res) => {
+    try {
+        const user = await users.findById(req.user._id);
+        if(!user){
+            return res.status(400).json({error: "User not found"});
+        }
+        user.isFrozen = true;
+        await user.save();
+        res.status(200).json({success: true});
+        
+    } catch (err) {
+        res.status(500).json({error: err.message})
+        console.log('Error in get the freezeAccount', err.message);
+    }
+}
 
 
-export {signUpUser, loginUser, logOut,followUnFollowUser, updateUser, getUserProfile, getSuggestedUsers}
+export {signUpUser, loginUser, logOut,followUnFollowUser, updateUser, getUserProfile, getSuggestedUsers, freezeAccount}

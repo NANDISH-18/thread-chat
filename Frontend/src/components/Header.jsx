@@ -8,6 +8,7 @@ import {BsFillChatQuoteFill} from 'react-icons/bs'
 import { FiLogOut } from "react-icons/fi";
 import useLogout from "../Hooks/useLogout";
 import authScreenAtom from "../atoms/authAtom";
+import {MdOutlineSettings} from 'react-icons/md'
 
 
 const Header = () => {
@@ -41,6 +42,9 @@ const Header = () => {
               </RouterLink>
               <RouterLink to={`/chat`}>
                 <BsFillChatQuoteFill size={24}/>
+              </RouterLink>
+              <RouterLink to={`/settings`}>
+                <MdOutlineSettings size={24}/>
               </RouterLink>
               <Button size={'sm'}>
                 <FiLogOut size={20} onClick={logout}/>

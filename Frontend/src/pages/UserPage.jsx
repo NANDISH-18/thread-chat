@@ -20,6 +20,7 @@ const UserPage = () => {
     
 
     const getPosts = async ()=> {
+      if(!user) return;
       setFetchingPost(true);
       try {
         const res = await fetch(`/api/posts/user/${username}`);
@@ -40,8 +41,8 @@ const UserPage = () => {
     }
 
     getPosts();
-  }, [username, showToast,setPosts]);
-  console.log('post is here and it is recoil State', posts);
+  }, [username, showToast,setPosts,user]);
+  // console.log('post is here and it is recoil State', posts);
 
   if(!user && loading){
     return(

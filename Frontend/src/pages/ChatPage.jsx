@@ -52,7 +52,7 @@ const ChatPage = () => {
         if(data.error) {
           showToast(data.error, 'error');
         }
-        console.log(data);
+        // console.log(data);
         setConversations(data);
         
       } catch (error) {
