@@ -20,7 +20,7 @@ export const AppSocketContextNewProvider = ({ children }) => {
         userId: user?._id,
       },
     });
-    console.log('Attempting to connect with socket:', socket);
+    // console.log('Attempting to connect with socket:', socket);
 
     setSocket(socket);
     socket.on("getOnlineUsers", (users) => {
@@ -30,7 +30,7 @@ export const AppSocketContextNewProvider = ({ children }) => {
     return () => socket && socket.close();
   }, [user?._id]);
 
-  console.log("Online Users: ", onlineUser);
+  // console.log("Online Users: ", onlineUser);
 
   return (
     <AppSocketContextNew.Provider value={{ socket, onlineUser }}>
